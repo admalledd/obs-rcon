@@ -1,6 +1,7 @@
 #ifndef RCONMAIN_H
 #define RCONMAIN_H
 
+#include <util/threading.h>
 #include <obs-module.h>
 
 #include "mongoose.h"
@@ -17,14 +18,13 @@
 
 typedef struct
 {
-    //mongoose server stuff
-    mg_server *server;
-    pthread_t server_thread;
-    bool run_thread;
+	//mongoose server stuff
+	struct mg_server *server;
+	pthread_t server_thread;
+	bool run_thread;
 
 } rcon_data_t;
 
 extern rcon_data_t rcon_data;
-
 
 #endif // RCONMAIN_H

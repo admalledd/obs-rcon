@@ -48,8 +48,8 @@
 #define _CRT_SECURE_NO_WARNINGS // Disable deprecation warning in VS2005+
 #endif
 #undef WIN32_LEAN_AND_MEAN      // Let windows.h always include winsock2.h
-#ifdef __Linux__
-#define _XOPEN_SOURCE 600       // For flockfile() on Linux
+#ifdef __linux__
+#define _XOPEN_SOURCE 700       // For flockfile() on Linux
 #endif
 #define __STDC_FORMAT_MACROS    // <inttypes.h> wants this for C++
 #define __STDC_LIMIT_MACROS     // C++ wants that for INT64_MAX

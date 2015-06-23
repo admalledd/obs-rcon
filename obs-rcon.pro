@@ -5,7 +5,9 @@ CONFIG -= qt
 
 SOURCES += \
     src/rcon-main.c \
-    src/rcon-server.c
+    src/rcon-server.c \
+    src/rcon-handlers.c \
+    src/mongoose.c
 
 
 unix:!macx: LIBS += -L/home/admalledd/bin/obs/bin/64bit/ -lobs
@@ -18,4 +20,6 @@ OTHER_FILES += \
 
 HEADERS += \
     src/rcon-main.h \
-    src/rcon-server.h
+    src/rcon-server.h \
+    src/rcon-handlers.h \
+    src/mongoose.h
