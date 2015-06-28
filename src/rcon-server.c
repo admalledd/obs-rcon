@@ -16,8 +16,6 @@ int root_handler(struct mg_connection *conn, json_t* jreq, json_t* jrsp);
 //Hanlde "all" requests to/from server, pass off to child funcs in
 // rcon-handlers.c for specific API hooking
 int root_handler(struct mg_connection *conn, json_t* jreq, json_t* jrsp){
-	info("root URI handler called");
-
 	//Get current "action" request
 	json_t* action = json_object_get(jreq,"action");
 	if (!action){
@@ -33,11 +31,14 @@ int root_handler(struct mg_connection *conn, json_t* jreq, json_t* jrsp){
 	else if(cmpjstr(action,"api/hotkey")){
 		return handle_hotkey(jreq,jrsp);
 	}
+	else if(cmpjstr(action,"api/output")){
+		return handle_output(jreq,jrsp);
+	}
 	else if(cmpjstr(action,"plugin")){
 		return handle_plugin(conn,jreq,jrsp);
 	}
 	else {
-		json_object_set_new(jrsp,"error",json_string("no 'action' found for request."));
+		json_object_set_new(jrsp,"error",json_string("no matching 'action' found for request."));
 
 		if (jreq){
 			json_object_set(jrsp, "requestJSON", jreq);
@@ -47,7 +48,6 @@ int root_handler(struct mg_connection *conn, json_t* jreq, json_t* jrsp){
 		}
 		return 400;
 	}
-
 }
 
 

@@ -45,7 +45,7 @@ int handle_version(struct mg_connection *conn, json_t* jreq, json_t* jrsp){
 		//these are actually "split" and handled by sub-handlers.
 		//user should query sub-hanlders (or check version number) for compat
 		json_array_append_new(ractions,json_string("api/output"));
-		json_array_append_new(ractions,json_string("api/hotkey"));
+		//json_array_append_new(ractions,json_string("api/hotkey"));
 
 		json_object_set_new(rinj,"actions_supported",ractions);
 
@@ -95,8 +95,16 @@ int handle_hotkey(json_t* jreq, json_t* jrsp){
 	return 200;
 }
 
+int handle_output(json_t* jreq, json_t* jrsp){
+	UNUSED_PARAMETER(jreq);
+	UNUSED_PARAMETER(jrsp);
+	blog(LOG_WARNING, "action 'api/output' TODO");
+	return 500;
+}
+
 int handle_plugin(struct mg_connection *conn, json_t *jreq, json_t *jrsp){
 	//TODO: iterate through plugin-added extra handlers
+	blog(LOG_WARNING,"action 'plugin' TODO");
 	UNUSED_PARAMETER(conn);
 	UNUSED_PARAMETER(jreq);
 	UNUSED_PARAMETER(jrsp);
