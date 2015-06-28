@@ -4,11 +4,51 @@
 #include "mongoose.h"
 #include "rcon-main.h"
 #include "rcon-server.h"
-
 #include "rcon-handlers.h"
 
+//local helper defines
+bool cmpuri(const char* uri1, const char* uri2);
 
-struct rcon_handler _handlers[MAX_RCON_HANDLERS] = {{0}};
+bool cmpjstr(json_t* jstr, const char* cstr);
+
+int root_handler(struct mg_connection *conn, json_t* jreq, json_t* jrsp);
+
+//Hanlde "all" requests to/from server, pass off to child funcs in
+// rcon-handlers.c for specific API hooking
+int root_handler(struct mg_connection *conn, json_t* jreq, json_t* jrsp){
+	info("root URI handler called");
+
+	//Get current "action" request
+	json_t* action = json_object_get(jreq,"action");
+	if (!action){
+		//no action found, set error handling
+		json_object_set_new(jrsp,"error",json_string("no 'action' key in request (please POST)"));
+		return 400;
+	}
+
+	//test handler, echos back some basic data about the request
+	if(cmpjstr(action,"version")){
+		return handle_version(conn,jreq,jrsp);
+	}
+	else if(cmpjstr(action,"api/hotkey")){
+		return handle_hotkey(jreq,jrsp);
+	}
+	else if(cmpjstr(action,"plugin")){
+		return handle_plugin(conn,jreq,jrsp);
+	}
+	else {
+		json_object_set_new(jrsp,"error",json_string("no 'action' found for request."));
+
+		if (jreq){
+			json_object_set(jrsp, "requestJSON", jreq);
+		}
+		else{
+			json_object_set_new(jrsp,"requestJSON", json_null());
+		}
+		return 400;
+	}
+
+}
 
 
 int ev_handler(struct mg_connection *conn, enum mg_event ev) {
@@ -35,14 +75,8 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev) {
 
 			json_t* jobj_resp = json_object();
 			int status = 404; //allow handler to choose response status
-			for (int i=0; i < MAX_RCON_HANDLERS; i++){
-				if (_handlers[i].uri_path){
-					if (cmpuri(_handlers[i].uri_path,conn->uri)){
-						status = _handlers[i].handler(conn, jobj_req, jobj_resp);
-						break; //break on first handler found
-					}
-				}
-			}
+
+			status = root_handler(conn, jobj_req, jobj_resp);
 
 			//free request
 			if (jobj_req){
@@ -72,7 +106,9 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev) {
 	}
 }
 
-
+//TODO: make a handler func array such that if a 404 is
+// returned pass on and try the next handler.
+/*
 void rcon_add_handler(char * uri, handler_func handler){
 	for (int i=0; i < MAX_RCON_HANDLERS; i++){
 		if (_handlers[i].uri_path){
@@ -92,7 +128,9 @@ void rcon_add_handler(char * uri, handler_func handler){
 	//if we got here, maxed out handlers?
 	error("could not add new handler, are they all taken?");
 }
+*/
 
+//Simplify strcmp usage, normally for URIs
 bool cmpuri(const char* uri1, const char* uri2){
 	if (strcasecmp(uri1,uri2)==0){
 		return true;
@@ -102,14 +140,33 @@ bool cmpuri(const char* uri1, const char* uri2){
 	}
 }
 
+// Compare a json_t* string to cstr
+bool cmpjstr(json_t* jstr, const char* cstr){
+	//Start out with some sanity checks:
+	if (!json_is_string(jstr)){
+		return false;
+	}
+	if (!cstr){
+		return false;
+	}
+	//create a tmp json_string for cstr, compare, then decref
+	json_t* jcstr = json_string(cstr);
+
+	int ret = json_equal(jstr,jcstr);
+	json_decref(jcstr);
+
+	//do a bool like thingy
+	if (ret){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
 
 
 void server_start()
 {
-	//first add handler(s)
-
-	rcon_add_handler("/",root_handler);
-
 	rcon_data.server = mg_create_server(NULL, ev_handler);
 	mg_set_option(rcon_data.server, "listening_port", "8080");
 

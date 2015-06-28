@@ -5,8 +5,6 @@
 
 int ev_handler(struct mg_connection *conn, enum mg_event ev);
 
-bool cmpuri(const char* uri1, const char* uri2);
-
 void *thread_runner(void* init_data);
 
 void server_start();
