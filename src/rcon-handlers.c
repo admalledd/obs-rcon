@@ -85,6 +85,11 @@ int handle_hotkey(json_t* jreq, json_t* jrsp){
 	combo.key = obs_key_from_name(json_string_value(jkey));
 	combo.modifiers = 0;
 
+	if(combo.key == OBS_KEY_NONE){
+		json_object_set_new(jrsp,"error",json_string("no key/modifiers or invalid type of key/modifiers"));
+		return 400;
+	}
+
 	//handle modifiers
 	if (json_is_true(json_object_get(jreq,"shift"))){
 		combo.modifiers |= INTERACT_SHIFT_KEY;
