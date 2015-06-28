@@ -9,8 +9,6 @@
 //local helper defines
 bool cmpuri(const char* uri1, const char* uri2);
 
-bool cmpjstr(json_t* jstr, const char* cstr);
-
 int root_handler(struct mg_connection *conn, json_t* jreq, json_t* jrsp);
 
 //Hanlde "all" requests to/from server, pass off to child funcs in
@@ -35,7 +33,14 @@ int root_handler(struct mg_connection *conn, json_t* jreq, json_t* jrsp){
 		return handle_output(jreq,jrsp);
 	}
 	else if(cmpjstr(action,"plugin")){
-		return handle_plugin(conn,jreq,jrsp);
+		for (size_t i=0; i < rcon_data.plugin_handlers.num; i++){
+			struct rcon_handler* hndlr = darray_item(sizeof(struct rcon_handler),&rcon_data.plugin_handlers,i);
+			if (cmpjstr(json_object_get(jreq,"plugin_action"),hndlr->action)){
+				return hndlr->handle_func(conn,jreq,jrsp);
+			}
+		}
+		json_object_set_new(jrsp,"error",json_string("no matching 'plugin_action' found for request."));
+		return 400;
 	}
 	else {
 		json_object_set_new(jrsp,"error",json_string("no matching 'action' found for request."));
@@ -106,29 +111,13 @@ int ev_handler(struct mg_connection *conn, enum mg_event ev) {
 	}
 }
 
-//TODO: make a handler func array such that if a 404 is
-// returned pass on and try the next handler.
-/*
-void rcon_add_handler(char * uri, handler_func handler){
-	for (int i=0; i < MAX_RCON_HANDLERS; i++){
-		if (_handlers[i].uri_path){
-			//check for dup'd URI, ignore on that case.
-			if (cmpuri(uri,_handlers[i].uri_path)){
-				warning("duplicate handler for URI [%s] was ignored.", uri);
-				return;
-			}
-		}
-		if (!_handlers[i].uri_path){
-			info("adding handler for URI [%s]",uri);
-			_handlers[i].uri_path = uri;
-			_handlers[i].handler = handler;
-			return;
-		}
-	}
-	//if we got here, maxed out handlers?
-	error("could not add new handler, are they all taken?");
+//add handler to ACTION (where action becomes "plugin", requester adds '{"plugin_action":"$ACTION"}')
+void rcon_add_handler(struct rcon_handler* new_handler){
+	//TODO: thread safty
+
+	//this does a copy, so no need for holding the memory twice
+	darray_push_back(sizeof(struct rcon_handler), &rcon_data.plugin_handlers, new_handler);
 }
-*/
 
 //Simplify strcmp usage, normally for URIs
 bool cmpuri(const char* uri1, const char* uri2){
@@ -164,9 +153,15 @@ bool cmpjstr(json_t* jstr, const char* cstr){
 	}
 }
 
-
 void server_start()
 {
+	darray_init(&rcon_data.plugin_handlers);
+
+	struct rcon_handler test_plugin_handler;
+	test_plugin_handler.action = "test_plugin";
+	test_plugin_handler.handle_func = &handle_version;
+	rcon_add_handler(&test_plugin_handler);
+
 	rcon_data.server = mg_create_server(NULL, ev_handler);
 	mg_set_option(rcon_data.server, "listening_port", "8080");
 
@@ -177,6 +172,7 @@ void server_start()
 
 void server_stop()
 {
+	darray_free(&rcon_data.plugin_handlers);
 	rcon_data.run_thread = false;
 	pthread_join(rcon_data.server_thread,NULL);
 	mg_destroy_server(&rcon_data.server);

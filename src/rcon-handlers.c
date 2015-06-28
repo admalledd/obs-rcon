@@ -46,8 +46,17 @@ int handle_version(struct mg_connection *conn, json_t* jreq, json_t* jrsp){
 		//user should query sub-hanlders (or check version number) for compat
 		json_array_append_new(ractions,json_string("api/output"));
 		//json_array_append_new(ractions,json_string("api/hotkey"));
+		json_array_append_new(ractions,json_string("plugin"));
 
 		json_object_set_new(rinj,"actions_supported",ractions);
+
+		//now for registered plugins plz
+		json_t* rplugins = json_array();
+		for (size_t i=0; i < rcon_data.plugin_handlers.num; i++){
+			struct rcon_handler* hndlr = darray_item(sizeof(struct rcon_handler),&rcon_data.plugin_handlers,i);
+			json_array_append_new(rplugins,json_string(hndlr->action));
+		}
+		json_object_set_new(rinj,"plugin_actions_supported",rplugins);
 
 		json_object_set_new(jrsp,"rcon",rinj);
 	}
@@ -102,11 +111,3 @@ int handle_output(json_t* jreq, json_t* jrsp){
 	return 500;
 }
 
-int handle_plugin(struct mg_connection *conn, json_t *jreq, json_t *jrsp){
-	//TODO: iterate through plugin-added extra handlers
-	blog(LOG_WARNING,"action 'plugin' TODO");
-	UNUSED_PARAMETER(conn);
-	UNUSED_PARAMETER(jreq);
-	UNUSED_PARAMETER(jrsp);
-	return 500;
-}

@@ -2,6 +2,7 @@
 #define RCONMAIN_H
 
 #include <util/threading.h>
+#include <util/darray.h>
 #include <obs-module.h>
 
 #include "mongoose.h"
@@ -16,12 +17,18 @@
 #define error(msg, ...) blog(LOG_ERROR, msg, ##__VA_ARGS__)
 
 
+struct rcon_handler  {
+	handler_func* handle_func;
+	char* action;
+};
+
 typedef struct
 {
 	//mongoose server stuff
 	struct mg_server *server;
 	pthread_t server_thread;
 	bool run_thread;
+	struct darray plugin_handlers;
 
 } rcon_data_t;
 
