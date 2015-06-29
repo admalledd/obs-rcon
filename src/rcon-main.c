@@ -1,7 +1,7 @@
 
 #include "rcon-main.h"
 
-rcon_data_t rcon_data = {0};
+struct rcon_data_t rcon_data = {0};
 
 
 OBS_DECLARE_MODULE()

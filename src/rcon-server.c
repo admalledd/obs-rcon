@@ -34,9 +34,9 @@ int root_handler(struct mg_connection *conn, json_t* jreq, json_t* jrsp){
 	}
 	else if(cmpjstr(action,"plugin")){
 		for (size_t i=0; i < rcon_data.plugin_handlers.num; i++){
-			struct rcon_handler* hndlr = darray_item(sizeof(struct rcon_handler),&rcon_data.plugin_handlers,i);
-			if (cmpjstr(json_object_get(jreq,"plugin_action"),hndlr->action)){
-				return hndlr->handle_func(conn,jreq,jrsp);
+			struct rcon_handler hndl = rcon_data.plugin_handlers.array[i];
+			if (cmpjstr(json_object_get(jreq,"plugin_action"),hndl.action)){
+				return hndl.handle_func(conn,jreq,jrsp);
 			}
 		}
 		json_object_set_new(jrsp,"error",json_string("no matching 'plugin_action' found for request."));
@@ -116,7 +116,7 @@ void rcon_add_handler(struct rcon_handler* new_handler){
 	//TODO: thread safty
 
 	//this does a copy, so no need for holding the memory twice
-	darray_push_back(sizeof(struct rcon_handler), &rcon_data.plugin_handlers, new_handler);
+	da_push_back(rcon_data.plugin_handlers, new_handler);
 }
 
 //Simplify strcmp usage, normally for URIs
@@ -155,7 +155,8 @@ bool cmpjstr(json_t* jstr, const char* cstr){
 
 void server_start()
 {
-	darray_init(&rcon_data.plugin_handlers);
+	da_init(rcon_data.plugin_handlers);
+	//darray_init(&rcon_data.plugin_handlers);
 
 	struct rcon_handler test_plugin_handler;
 	test_plugin_handler.action = "test_plugin";
@@ -172,7 +173,9 @@ void server_start()
 
 void server_stop()
 {
-	darray_free(&rcon_data.plugin_handlers);
+	da_free(rcon_data.plugin_handlers);
+	//darray_free(&rcon_data.plugin_handlers);
+
 	rcon_data.run_thread = false;
 	pthread_join(rcon_data.server_thread,NULL);
 	mg_destroy_server(&rcon_data.server);

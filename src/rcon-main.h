@@ -17,21 +17,20 @@
 #define error(msg, ...) blog(LOG_ERROR, msg, ##__VA_ARGS__)
 
 
-struct rcon_handler  {
+struct rcon_handler {
 	handler_func* handle_func;
 	char* action;
 };
 
-typedef struct
-{
+struct rcon_data_t {
 	//mongoose server stuff
 	struct mg_server *server;
 	pthread_t server_thread;
 	bool run_thread;
-	struct darray plugin_handlers;
 
-} rcon_data_t;
+	DARRAY(struct rcon_handler)	plugin_handlers;
+};
 
-extern rcon_data_t rcon_data;
+extern struct rcon_data_t rcon_data;
 
 #endif // RCONMAIN_H
