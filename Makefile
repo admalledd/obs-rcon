@@ -32,7 +32,7 @@ LIB_OBJ = \
  build/mongoose.o
 
 PLUGIN_BUILD_DIR = build/obs-rcon
-PLUGIN_INSTALL_DIR = ~/.obs-studio/plugins/obs-rcon
+PLUGIN_INSTALL_DIR = ~/.config/obs-studio/plugins/obs-rcon/bin/64bit/
 
 all: plugin
 
@@ -44,7 +44,7 @@ plugin: $(LIB)
 .PHONY: install
 install: plugin
 	mkdir -p $(PLUGIN_INSTALL_DIR)
-	cp -r $(PLUGIN_BUILD_DIR)/* $(PLUGIN_INSTALL_DIR)
+	cp $(PLUGIN_BUILD_DIR)/bin/obs-rcon.so $(PLUGIN_INSTALL_DIR)
 
 .PHONY: uninstall
 uninstall:

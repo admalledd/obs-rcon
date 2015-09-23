@@ -18,17 +18,17 @@
 
 
 struct rcon_handler {
-	handler_func* handle_func;
-	char* action;
+    handler_func* handle_func;
+    char* action;
 };
 
 struct rcon_data_t {
-	//mongoose server stuff
-	struct mg_server *server;
-	pthread_t server_thread;
-	bool run_thread;
+    //mongoose server stuff
+    struct mg_server                *server;
+    pthread_t                       server_thread;
+    bool                            run_thread;
 
-	DARRAY(struct rcon_handler)	plugin_handlers;
+    DARRAY(struct rcon_handler)     plugin_handlers;
 };
 
 extern struct rcon_data_t rcon_data;
