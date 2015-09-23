@@ -10,38 +10,6 @@
 #undef OBS_PLUGIN_DESTINATION
 #include <obsconfig.h>
 
-//local funcs
-
-bool route_fake_hotkey(void* data, size_t idx, obs_hotkey_binding_t* binding);
-
-struct rcon_obs_hotkey {
-    obs_hotkey_id               id;
-    char                        *name;
-    char                        *description;
-
-    obs_hotkey_func             func;
-    void                        *data;
-    int                         pressed;
-
-    obs_hotkey_registerer_t     registerer_type;
-    void                        *registerer;
-
-    obs_hotkey_id               pair_partner_id;
-};
-struct rcon_obs_hotkey_binding {
-    obs_key_combination_t       key;
-    bool                        pressed : 1;
-    bool                        modifiers_match : 1;
-
-    obs_hotkey_id               hotkey_id;
-    obs_hotkey_t                *hotkey;
-};
-
-struct rcon_obs_hotkey_event_internal {
-    obs_key_combination_t combo;
-    bool                  pressed;
-};
-
 int handle_version(struct mg_connection *conn, json_t* jreq, json_t* jrsp){
 
     //mongoose connection data:
@@ -138,38 +106,11 @@ int handle_hotkey(json_t* jreq, json_t* jrsp){
          json_string_value(jkey), combo.key, combo.modifiers);
 
     //Can't use inject_event: does some is_pressed() stuff to check if key actually is pressed.
-    //Thus we need to route the keys ourselves. yay.
-    //struct rcon_obs_hotkey_event_internal data = {combo,true};
-    //obs_enum_hotkey_bindings(&route_fake_hotkey, &data);
-    //data.pressed = false;
-    //obs_enum_hotkey_bindings(&route_fake_hotkey, &data);
-
     //press/release
     obs_hotkey_inject_event(combo,true); //TODO: patch OBS to be able to inject fake events
     obs_hotkey_inject_event(combo,false);
     return 200;
 }
-
-bool route_fake_hotkey(void* data, obs_hotkey_id idx, obs_hotkey_binding_t* binding){
-    UNUSED_PARAMETER(idx);
-    //TODO: thread safty
-
-    struct rcon_obs_hotkey_event_internal* event = data;
-    obs_key_combination_t combo = event->combo;
-    bool pressed = event->pressed;
-
-    //cast the internal binding so that we can get the FUNC.
-    struct rcon_obs_hotkey_binding* rbinding = binding;
-
-    if (combo.key == rbinding->key.key && combo.modifiers == rbinding->key.modifiers){
-        struct rcon_obs_hotkey* rhot = rbinding->hotkey;
-
-        //TODO: get the routing function and use that if available?
-        rhot->func(rhot->data,rhot->id,rbinding->hotkey,pressed);
-    }
-    return true;
-}
-
 
 int handle_output(json_t* jreq, json_t* jrsp){
     UNUSED_PARAMETER(jreq);
