@@ -20,5 +20,5 @@ Find your keybindings in `$HOME/.config/obs-studio/basic/profiles/$PROFILE_NAME/
 
 examples written with these bindings bound to start/stop recording.
 
-* `curl -X POST -d '{"action":"hotkey","key":"OBS_KEY_NUMSLASH","control":"true"}' http://localhost:8080/`
-* `curl -X POST -d '{"action":"hotkey","key":"OBS_KEY_NUMASTERISK","control":"false"}' http://localhost:8080/`
+* `curl -X POST -d '{"action":"hotkey","key":"OBS_KEY_NUMSLASH","control":true}' http://localhost:8080/`
+* `curl -X POST -d '{"action":"hotkey","key":"OBS_KEY_NUMASTERISK"}' http://localhost:8080/`
